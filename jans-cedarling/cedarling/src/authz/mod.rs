@@ -78,7 +78,7 @@ impl Authz {
     pub(crate) async fn decode_tokens<'a>(
         &'a self,
         request: &'a Request,
-    ) -> Result<HashMap<String, Token>, AuthorizeError> {
+    ) -> Result<HashMap<String, Arc<Token>>, AuthorizeError> {
         let tokens = self
             .config
             .jwt_service
@@ -109,7 +109,7 @@ impl Authz {
 
         // Parse action UID.
         let action = cedar_policy::EntityUid::from_str(request.action.as_str())
-            .map_err(AuthorizeError::Action)?;
+            .map_err(|e| AuthorizeError::Action(Box::new(e)))?;
 
         // Parse [`cedar_policy::Entity`]-s to [`AuthorizeEntitiesData`] that hold all entities (for usability).
         let entities_data = self
@@ -133,7 +133,7 @@ impl Authz {
 
         // Convert [`AuthorizeEntitiesData`] to  [`cedar_policy::Entities`] structure,
         // hold all entities that will be used on authorize check.
-        let entities = entities_data.entities(Some(&schema.schema))?;
+        let entities: Entities = entities_data.entities(Some(&schema.schema))?;
 
         let (workload_authz_result, workload_authz_info, workload_entity_claims) =
             if let Some(workload) = workload_principal.clone() {
@@ -240,7 +240,7 @@ impl Authz {
         let mut entities_raw_json = Vec::new();
         let cursor = Cursor::new(&mut entities_raw_json);
 
-        entities.write_to_json(cursor)?;
+        entities.write_to_json(cursor).map_err(Box::new)?;
         let entities_json: serde_json::Value = serde_json::from_slice(entities_raw_json.as_slice())
             .map_err(AuthorizeError::EntitiesToJson)?;
 
@@ -470,7 +470,7 @@ impl Authz {
         let schema = &self.config.policy_store.schema;
         // Parse action UID.
         let action = cedar_policy::EntityUid::from_str(request.action.as_str())
-            .map_err(AuthorizeError::Action)?;
+            .map_err(|e| AuthorizeError::Action(Box::new(e)))?;
 
         let BuiltEntitiesUnsigned {
             principals,
@@ -498,7 +498,8 @@ impl Authz {
         let entities = Entities::from_entities(
             principals.into_iter().chain(roles).chain([resource]),
             Some(&schema.schema),
-        )?;
+        )
+        .map_err(Box::new)?;
 
         let mut principal_responses = HashMap::new();
 
@@ -537,7 +538,7 @@ impl Authz {
         let mut entities_raw_json = Vec::new();
         let cursor = Cursor::new(&mut entities_raw_json);
 
-        entities.write_to_json(cursor)?;
+        entities.write_to_json(cursor).map_err(Box::new)?;
         let entities_json: serde_json::Value = serde_json::from_slice(entities_raw_json.as_slice())
             .map_err(AuthorizeError::EntitiesToJson)?;
 
@@ -607,7 +608,7 @@ impl Authz {
     fn execute_authorize(
         &self,
         parameters: ExecuteAuthorizeParameters,
-    ) -> Result<cedar_policy::Response, cedar_policy::RequestValidationError> {
+    ) -> Result<cedar_policy::Response, Box<cedar_policy::RequestValidationError>> {
         let mut request_builder = cedar_policy::Request::builder()
             .action(parameters.action)
             .resource(parameters.resource)
@@ -633,7 +634,7 @@ impl Authz {
     pub fn build_entities(
         &self,
         request: &Request,
-        tokens: &HashMap<String, Token>,
+        tokens: &HashMap<String, Arc<Token>>,
     ) -> Result<AuthorizeEntitiesData, AuthorizeError> {
         Ok(self
             .config
@@ -710,8 +711,8 @@ impl AuthorizeEntitiesData {
     pub(crate) fn entities(
         self,
         schema: Option<&cedar_policy::Schema>,
-    ) -> Result<cedar_policy::Entities, cedar_policy::entities_errors::EntitiesError> {
-        Entities::from_entities(self.into_iter(), schema)
+    ) -> Result<cedar_policy::Entities, Box<cedar_policy::entities_errors::EntitiesError>> {
+        Entities::from_entities(self.into_iter(), schema).map_err(Box::new)
     }
 
     /// Returns the names and IDs of built entities for inclusion in the context.

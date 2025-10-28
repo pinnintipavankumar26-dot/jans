@@ -276,8 +276,8 @@ paths:
     get:
       tags:
       - Agama
-      summary: Fetches deployed Agama project based on name.
-      description: Fetches deployed Agama project based on name.
+      summary: Retrieve details of a single deployment by name.
+      description: Retrieve details of a single deployment by name.
       operationId: get-agama-prj-by-name
       parameters:
       - name: name
@@ -311,8 +311,8 @@ paths:
     post:
       tags:
       - Agama
-      summary: Deploy an Agama project.
-      description: Deploy an Agama project.
+      summary: Add or replace an Agama project to the server.
+      description: Add or replace an Agama project to the server.
       operationId: post-agama-prj
       parameters:
       - name: name
@@ -358,8 +358,8 @@ paths:
     delete:
       tags:
       - Agama
-      summary: Delete a deployed Agama project.
-      description: Delete a deployed Agama project.
+      summary: Undeploy an Agama project from the server.
+      description: Undeploy an Agama project from the server.
       operationId: delete-agama-prj
       parameters:
       - name: name
@@ -386,8 +386,10 @@ paths:
     get:
       tags:
       - Agama
-      summary: Retrieve the list of configs based on name.
-      description: Retrieve the list of configs based on name.
+      summary: Retrieve the configurations associated to flows that belong to the
+        project of interest. The project must have been already processed fully.
+      description: Retrieve the configurations associated to flows that belong to
+        the project of interest. The project must have been already processed fully.
       operationId: get-agama-prj-configs
       parameters:
       - name: name
@@ -417,8 +419,10 @@ paths:
     put:
       tags:
       - Agama
-      summary: Update an Agama project.
-      description: Update an Agama project.
+      summary: Set or replace the configurations associated to flows that belong to
+        the project. The project must have been already processed fully.
+      description: Set or replace the configurations associated to flows that belong
+        to the project. The project must have been already processed fully.
       operationId: put-agama-prj
       parameters:
       - name: name
@@ -428,19 +432,50 @@ paths:
         schema:
           type: string
       requestBody:
-        description: "Agama flow config, key is `name` of config property and `value`\
-          \ is the property value. "
+        description: 'JSON object with configurations associated to flows '
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties:
-                type: object
-                additionalProperties:
-                  type: object
+              type: string
+            examples:
+              Request example:
+                description: Request example
+                value: |
+                  {
+                    "org.gluu.agama.ldap.pw.main": {
+                      "lockConfig": {
+                        "MAX_LOGIN_ATTEMPT": 6,
+                        "ENABLE_LOCK": true,
+                        "LOCK_EXP_TIME": 180
+                      },
+                      "useInternalLdapConfig": false,
+                      "serversConfig": [
+                        {
+                          "configId": "ad_1",
+                          "bindDN": "cn=directory manager",
+                          "bindPassword": "encoded_password/plain_passowrd",
+                          "servers": [
+                            "localhost:1389"
+                          ],
+                          "maxConnections": 3,
+                          "useSSL": false,
+                          "baseDNs": [
+                            "ou=people,o=jans"
+                          ],
+                          "loginAttributes": [
+                            "uid"
+                          ],
+                          "localLoginAttributes": [
+                            "uid"
+                          ]
+                        }
+                      ]
+                    }
+                  }
       responses:
-        "202":
-          description: Agama project accepted
+        "200":
+          description: JSON object with properties values correspond to a boolean
+            indicating the success of the update for the given flow.
           content:
             application/json:
               schema:
@@ -448,7 +483,8 @@ paths:
               examples:
                 Response json example:
                   description: Response json example
-                  value: ""
+                  value: |
+                    {"org.gluu.agama.ldap.pw.main"=true}
         "400":
           description: Bad Request
         "401":
@@ -515,7 +551,7 @@ paths:
         "200":
           description: Agama project
           content:
-            application/json:
+            text/plain:
               schema:
                 type: string
                 format: binary
@@ -13579,109 +13615,19 @@ paths:
         description: JWT ID - unique identifier for the JWT
         schema:
           type: string
-      - name: orgId
-        in: query
-        description: Organization identifier
-        required: true
-        schema:
-          type: string
       responses:
         "200":
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Response"
-              examples:
-                Response json example:
-                  description: Response json example
-                  value: |
-                    [
-                        {
-                            "dn": "jansId=c0baae4d-3282-4d20-99d9-90c30a1b6e53,ou=sessions,o=jans",
-                            "id": "c0baae4d-3282-4d20-99d9-90c30a1b6e53",
-                            "outsideSid": "652dc5e2-d95b-416e-b1ca-34b7dfb441d9",
-                            "lastUsedAt": "2024-09-24T14:53:13",
-                            "userDn": "inum=122ff2df-911d-424b-bbfe-891a43a70e95,ou=people,o=jans",
-                            "authenticationTime": "2024-09-24T14:53:13",
-                            "state": "authenticated",
-                            "sessionState": "34d35953e0008389587369ab1be6d6c93aa6d9e103dc2da93c157fc1b8d12385.696be3a5-d30c-4401-831f-4cd9017e8772",
-                            "permissionGrantedMap": {
-                                "permissionGranted": {
-                                    "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9": true
-                                }
-                            },
-                            "sessionAttributes": {
-                                "acr": "simple_password_auth",
-                                "remote_ip": "123.201.169.114",
-                                "opbs": "355386a7-8e51-488b-ab1d-b65fa9f5a6d5",
-                                "acr_values": "simple_password_auth",
-                                "scope": "openid profile email user_name",
-                                "response_type": "code",
-                                "redirect_uri": "https://pujavs-hopeful-colt.gluu.info/admin",
-                                "state": "abc",
-                                "nonce": "puja",
-                                "client_id": "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9",
-                                "auth_user": "admin",
-                                "old_session_id": "db06a1ad-fe41-4af1-b6a8-96eac8747b39",
-                                "session_id": "c0baae4d-3282-4d20-99d9-90c30a1b6e53",
-                                "sid": "652dc5e2-d95b-416e-b1ca-34b7dfb441d9",
-                                "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9_authz_scopes": "openid user_name profile email",
-                                "successful_rp_redirect_count": "1"
-                            },
-                            "expirationDate": "2024-11-25T14:53:06",
-                            "deletable": true,
-                            "creationDate": "2024-09-24T14:53:06",
-                            "persisted": false,
-                            "ttl": 0,
-                            "opbrowserState": "355386a7-8e51-488b-ab1d-b65fa9f5a6d5"
-                        },
-                        {
-                            "dn": "jansId=7cbad817-0b96-40ca-8667-1073bfa726c3,ou=sessions,o=jans",
-                            "id": "7cbad817-0b96-40ca-8667-1073bfa726c3",
-                            "outsideSid": "5c306424-462c-4b2d-8827-61c93dee54ce",
-                            "lastUsedAt": "2024-09-24T14:52:15",
-                            "userDn": "inum=122ff2df-911d-424b-bbfe-891a43a70e95,ou=people,o=jans",
-                            "authenticationTime": "2024-09-24T14:52:15",
-                            "state": "authenticated",
-                            "sessionState": "30288a431305c3fe91f716969837e809ae2c86982c8f0481c78c58f2db7dfd93.d3646d5e-62bf-421c-b1cf-51d6c4d6f64e",
-                            "permissionGrantedMap": {
-                                "permissionGranted": {
-                                    "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9": true
-                                }
-                            },
-                            "sessionAttributes": {
-                                "acr": "simple_password_auth",
-                                "remote_ip": "123.201.169.114",
-                                "opbs": "661fbf90-1ffc-4560-9f95-cb113791af38",
-                                "acr_values": "simple_password_auth",
-                                "scope": "openid profile email user_name jansAdminUIRole",
-                                "response_type": "code",
-                                "redirect_uri": "https://pujavs-hopeful-colt.gluu.info/admin",
-                                "state": "abc",
-                                "nonce": "xyz",
-                                "client_id": "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9",
-                                "auth_user": "admin",
-                                "old_session_id": "84d59a22-e98b-41ab-a195-fe52efbc6cba",
-                                "session_id": "7cbad817-0b96-40ca-8667-1073bfa726c3",
-                                "sid": "5c306424-462c-4b2d-8827-61c93dee54ce",
-                                "2000.cc8b29ae-cb4a-49ea-b176-8695e53919d9_authz_scopes": "openid user_name profile email jansAdminUIRole",
-                                "successful_rp_redirect_count": "1"
-                            },
-                            "expirationDate": "2024-10-25T14:52:06",
-                            "deletable": true,
-                            "creationDate": "2024-09-24T14:52:06",
-                            "persisted": false,
-                            "ttl": 0,
-                            "opbrowserState": "661fbf90-1ffc-4560-9f95-cb113791af38"
-                        }
-                    ]
+          description: Success
         "401":
           description: Unauthorized
+        "422":
+          description: Unprocessable Entity
         "500":
           description: InternalServerError
       security:
       - oauth2:
         - https://jans.io/oauth/config/ssa.delete
+        - https://jans.io/auth/ssa.admin
   /api/v1/stat:
     get:
       tags:
@@ -15003,19 +14949,19 @@ components:
           type: string
         selected:
           type: boolean
-        whitePagesCanView:
-          type: boolean
-        userCanView:
-          type: boolean
-        userCanEdit:
+        adminCanView:
           type: boolean
         adminCanEdit:
           type: boolean
-        adminCanView:
+        whitePagesCanView:
           type: boolean
-        userCanAccess:
+        userCanEdit:
           type: boolean
         adminCanAccess:
+          type: boolean
+        userCanView:
+          type: boolean
+        userCanAccess:
           type: boolean
         baseDn:
           type: string
@@ -15088,6 +15034,8 @@ components:
         requirePar:
           type: boolean
         parForbidPublicClient:
+          type: boolean
+        jwtGrantAllowUserByUidInAssertion:
           type: boolean
         deviceAuthzEndpoint:
           type: string
@@ -15245,6 +15193,7 @@ components:
             - urn:ietf:params:oauth:grant-type:token-exchange
             - urn:openid:params:grant-type:ciba
             - urn:ietf:params:oauth:grant-type:device_code
+            - urn:ietf:params:oauth:grant-type:jwt-bearer
         subjectTypesSupported:
           type: array
           items:
@@ -15572,6 +15521,7 @@ components:
             - urn:ietf:params:oauth:grant-type:token-exchange
             - urn:openid:params:grant-type:ciba
             - urn:ietf:params:oauth:grant-type:device_code
+            - urn:ietf:params:oauth:grant-type:jwt-bearer
         cssLocation:
           type: string
         jsLocation:
@@ -16421,6 +16371,7 @@ components:
             - urn:ietf:params:oauth:grant-type:token-exchange
             - urn:openid:params:grant-type:ciba
             - urn:ietf:params:oauth:grant-type:device_code
+            - urn:ietf:params:oauth:grant-type:jwt-bearer
         applicationType:
           type: string
           enum:
@@ -17583,10 +17534,10 @@ components:
         ttl:
           type: integer
           format: int32
-        persisted:
-          type: boolean
         opbrowserState:
           type: string
+        persisted:
+          type: boolean
     SessionIdAccessMap:
       type: object
       properties:
@@ -17676,228 +17627,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/UserAuthenticator"
-    EntityTag:
-      type: object
-      properties:
-        value:
-          type: string
-        weak:
-          type: boolean
-    Link:
-      type: object
-      properties:
-        type:
-          type: string
-        params:
-          type: object
-          additionalProperties:
-            type: string
-        uriBuilder:
-          $ref: "#/components/schemas/UriBuilder"
-        title:
-          type: string
-        uri:
-          type: string
-          format: uri
-        rels:
-          type: array
-          items:
-            type: string
-        rel:
-          type: string
-    MediaType:
-      type: object
-      properties:
-        type:
-          type: string
-        subtype:
-          type: string
-        parameters:
-          type: object
-          additionalProperties:
-            type: string
-        wildcardType:
-          type: boolean
-        wildcardSubtype:
-          type: boolean
-    MultivaluedMapStringObject:
-      type: object
-      properties:
-        empty:
-          type: boolean
-      additionalProperties:
-        type: array
-        items:
-          type: object
-    MultivaluedMapStringString:
-      type: object
-      properties:
-        empty:
-          type: boolean
-      additionalProperties:
-        type: array
-        items:
-          type: string
-    NewCookie:
-      type: object
-      properties:
-        name:
-          type: string
-        value:
-          type: string
-        version:
-          type: integer
-          format: int32
-        path:
-          type: string
-        domain:
-          type: string
-        comment:
-          type: string
-        maxAge:
-          type: integer
-          format: int32
-        expiry:
-          type: string
-          format: date-time
-        secure:
-          type: boolean
-        httpOnly:
-          type: boolean
-        sameSite:
-          type: string
-          enum:
-          - NONE
-          - LAX
-          - STRICT
-    Response:
-      type: object
-      properties:
-        headers:
-          type: object
-          properties:
-            empty:
-              type: boolean
-          additionalProperties:
-            type: array
-            items:
-              type: object
-        length:
-          type: integer
-          format: int32
-        location:
-          type: string
-          format: uri
-        language:
-          type: object
-          properties:
-            language:
-              type: string
-            displayName:
-              type: string
-            country:
-              type: string
-            variant:
-              type: string
-            script:
-              type: string
-            unicodeLocaleAttributes:
-              uniqueItems: true
-              type: array
-              items:
-                type: string
-            unicodeLocaleKeys:
-              uniqueItems: true
-              type: array
-              items:
-                type: string
-            displayLanguage:
-              type: string
-            displayScript:
-              type: string
-            displayCountry:
-              type: string
-            displayVariant:
-              type: string
-            extensionKeys:
-              uniqueItems: true
-              type: array
-              items:
-                type: string
-            iso3Language:
-              type: string
-            iso3Country:
-              type: string
-        date:
-          type: string
-          format: date-time
-        lastModified:
-          type: string
-          format: date-time
-        metadata:
-          type: object
-          properties:
-            empty:
-              type: boolean
-          additionalProperties:
-            type: array
-            items:
-              type: object
-        status:
-          type: integer
-          format: int32
-        entity:
-          type: object
-        closed:
-          type: boolean
-        cookies:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/NewCookie"
-        links:
-          uniqueItems: true
-          type: array
-          items:
-            $ref: "#/components/schemas/Link"
-        mediaType:
-          $ref: "#/components/schemas/MediaType"
-        allowedMethods:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        stringHeaders:
-          type: object
-          properties:
-            empty:
-              type: boolean
-          additionalProperties:
-            type: array
-            items:
-              type: string
-        statusInfo:
-          $ref: "#/components/schemas/StatusType"
-        entityTag:
-          $ref: "#/components/schemas/EntityTag"
-    StatusType:
-      type: object
-      properties:
-        family:
-          type: string
-          enum:
-          - INFORMATIONAL
-          - SUCCESSFUL
-          - REDIRECTION
-          - CLIENT_ERROR
-          - SERVER_ERROR
-          - OTHER
-        statusCode:
-          type: integer
-          format: int32
-        reasonPhrase:
-          type: string
-    UriBuilder:
-      type: object
     TokenAttributes:
       type: object
       properties:
@@ -17979,8 +17708,6 @@ components:
           $ref: "#/components/schemas/TokenAttributes"
         dpop:
           type: string
-        accessToken:
-          type: boolean
         logoutStatusJwt:
           type: boolean
         tokenTypeEnum:
@@ -17993,6 +17720,8 @@ components:
           - AUTHORIZATION_CODE
           - LOGOUT_STATUS_JWT
           - TX_TOKEN
+        accessToken:
+          type: boolean
     TokenEntityPagedResult:
       type: object
       properties:
